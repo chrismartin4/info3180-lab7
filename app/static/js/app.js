@@ -3,10 +3,68 @@
 const app = Vue.createApp({
     data() {
         return {
-
+            
         }
     }
 });
+
+const UploadForm = {
+    name: "upload-form",
+    data(){
+        return{
+            isSuccessUpload:false,
+            displayFlash:false,
+            successmessage:"",
+            errormessage:"",
+        }
+    },
+
+    template:`
+    <div>
+    <h2> Upload Form </h2><br>
+    <div  v-if="isSuccessUpload"> </div>
+   
+    <form v-on:submit.prevent="uploadPhoto" method="POST" enctype="multipart/form-data" id="uploadForm">
+
+    <div class="form-group">
+        <label><h6> Description: </h6></label><br>
+        <textarea name="description"> </textarea><br>
+        <label><h6> Photo: </h6></label><br>
+        <input type="file" name="photo">
+    </div>
+        <button class="btn btn-primary mb-2" >Upload</button>
+    </form>
+    </div>
+    `,
+
+    methods: {
+        uploadPhoto(){
+            let uploadForm = document.getElementById('uploadForm');
+            let form_data = new FormData(uploadForm);
+            fetch("/api/upload", {
+                method: 'POST',
+                body: form_data,
+                headers: {
+                    'X-CSRFToken': token
+                },
+                credentials: 'same-origin'
+            })
+                .then(function (response) {
+                return response.json();
+                })
+                .then(function (jsonResponse) {
+                isSuccessUpload = true
+                this.successmessage = "File Upload Successful"
+                // display a success message
+                console.log(jsonResponse);
+                })
+                .catch(function (error) {
+                this.errormessage = "Something went wrong"
+                console.log(error);
+                });
+        }
+    },
+};
 
 app.component('app-header', {
     name: 'AppHeader',
@@ -20,7 +78,10 @@ app.component('app-header', {
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
-            <router-link class="nav-link" to="/">Home <span class="sr-only">(current)</span></router-link>
+            <router-link class="nav-link" to="/">Home<span class="sr-only">(current)</span></router-link>
+          </li>
+          <li class="nav-item active">
+            <router-link class="nav-link" to="/upload">Upload<span class="sr-only">(current)</span></router-link>
           </li>
         </ul>
       </div>
@@ -73,6 +134,7 @@ const NotFound = {
 const routes = [
     { path: "/", component: Home },
     // Put other routes here
+    { path: "/upload" , component: UploadForm},
 
     // This is a catch all route in case none of the above matches
     { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFound }
